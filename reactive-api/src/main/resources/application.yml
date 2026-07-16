@@ -1,0 +1,11 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: reactive-api
+
+logging:
+  level:
+    cloud.imuyi.webflux: DEBUG
+    org.springframework.web.reactive: INFO
