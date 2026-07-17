@@ -1,0 +1,23 @@
+server:
+  port: 8084
+spring:
+  threads:
+    virtual:
+      enabled: true
+  r2dbc:
+    url: r2dbc:h2:mem:///reactivechat
+    name: reactivechat
+    username: sa
+    password:
+  sql:
+    init:
+      schema-locations: classpath:schema.sql
+      mode: always
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,metrics
+  tracing:
+    sampling:
+      probability: 1.0
