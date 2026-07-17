@@ -10,7 +10,7 @@
 |------|------|------|
 | `reactor-playground` | 阶段一 | Reactor Core 基础语法实验：Flux/Mono、操作符、错误处理、背压、调度器 |
 | `reactive-api` | 阶段二 | 响应式 CRUD、SSE 行情推送、Virtual Threads 混合架构 |
-| `resilient-api` | 阶段三 | Spring 7.x 弹性特性（@Retryable, @ConcurrencyLimit）+ API Versioning |
+| `reactive-chat` | 阶段四 | R2DBC + WebSocket + SSE AI Chat + Virtual Threads 混合 + 可观测性 |
 
 ---
 
@@ -42,3 +42,11 @@
   - [`05-reactive-retry`](./adocs/03-resilience/05-reactive-retry.md) — 响应式重试
   - [`06-http-message-converters`](./adocs/03-resilience/06-http-message-converters.md) — HttpMessageConverters
   - [`07-common-patterns`](./adocs/03-resilience/07-common-patterns.md) — 速查表与常见模式
+- **阶段四：数据访问 & 高阶实战** — [`adocs/04-advanced-practice/`](./adocs/04-advanced-practice/)
+  - [`01-r2dbc-basics`](./adocs/04-advanced-practice/01-r2dbc-basics.md) — R2DBC 基础
+  - [`02-reactive-transactions`](./adocs/04-advanced-practice/02-reactive-transactions.md) — 响应式事务
+  - [`03-reactive-websocket`](./adocs/04-advanced-practice/03-reactive-websocket.md) — WebSocket 实时通信
+  - [`04-reactive-ai-chat-sse`](./adocs/04-advanced-practice/04-reactive-ai-chat-sse.md) — AI Chat SSE
+  - [`05-virtual-threads-hybrid`](./adocs/04-advanced-practice/05-virtual-threads-hybrid.md) — Virtual Threads 混合
+  - [`06-observability`](./adocs/04-advanced-practice/06-observability.md) — 可观测性
+  - [`07-reactive-testing`](./adocs/04-advanced-practice/07-reactive-testing.md) — 响应式测试
