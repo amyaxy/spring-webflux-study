@@ -29,7 +29,7 @@
     <modules>
         <module>reactor-playground</module>
         <module>reactive-api</module>
-        <!--        <module>resilient-api</module>-->
+        <module>resilient-api</module>
         <!--        <module>reactive-chat</module>-->
     </modules>
 

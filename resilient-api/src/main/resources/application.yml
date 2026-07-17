@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: resilient-api
+
+  threads:
+    virtual:
+      enabled: true
+
+server:
+  port: 8082
