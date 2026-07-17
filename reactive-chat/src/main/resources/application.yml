@@ -5,7 +5,7 @@ spring:
     virtual:
       enabled: true
   r2dbc:
-    url: r2dbc:h2:mem:///reactivechat
+    url: r2dbc:h2:mem:///reactivechat;MODE=MySQL
     name: reactivechat
     username: sa
     password:
