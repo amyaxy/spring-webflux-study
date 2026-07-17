@@ -16,7 +16,29 @@
 
 ## 学习笔记
 
-- [学习计划](./adocs/PLAN.md)
-- 阶段一：Reactor Core — [`adocs/01-reactor-core/`](./adocs/01-reactor-core/)
-- 阶段二：WebFlux 基础 — [`adocs/02-webflux-basics/`](./adocs/02-webflux-basics/)
-- 阶段三：弹性与 API 版本化 — [`adocs/03-resilience/`](./adocs/03-resilience/)
+- [`📄 学习计划`](./adocs/PLAN.md)
+- **阶段一：Reactor Core** — [`adocs/01-reactor-core/`](./adocs/01-reactor-core/)
+  - [`01-flux-interval`](./adocs/01-reactor-core/01-flux-interval.md) — Flux.interval 定时序列
+  - [`02-operators`](./adocs/01-reactor-core/02-operators.md) — 常用操作符
+  - [`03-error-handling`](./adocs/01-reactor-core/03-error-handling.md) — 错误处理策略
+  - [`04-backpressure`](./adocs/01-reactor-core/04-backpressure.md) — 背压机制
+  - [`05-schedulers`](./adocs/01-reactor-core/05-schedulers.md) — 调度器与线程模型
+  - [`06-common-methods`](./adocs/01-reactor-core/06-common-methods.md) — 常见 API 速查
+- **阶段二：WebFlux 基础** — [`adocs/02-webflux-basics/`](./adocs/02-webflux-basics/)
+  - [`01-webflux-architecture`](./adocs/02-webflux-basics/01-webflux-architecture.md) — WebFlux 架构
+  - [`02-annotated-controller`](./adocs/02-webflux-basics/02-annotated-controller.md) — 注解式控制器
+  - [`03-functional-endpoints`](./adocs/02-webflux-basics/03-functional-endpoints.md) — 函数式端点
+  - [`04-request-validation`](./adocs/02-webflux-basics/04-request-validation.md) — 请求校验
+  - [`05-server-sent-events`](./adocs/02-webflux-basics/05-server-sent-events.md) — SSE 服务端推送
+  - [`06-webclient`](./adocs/02-webflux-basics/06-webclient.md) — WebClient 客户端
+  - [`07-webfilter`](./adocs/02-webflux-basics/07-webfilter.md) — WebFilter 过滤器
+  - [`08-webtestclient`](./adocs/02-webflux-basics/08-webtestclient.md) — WebTestClient 测试
+  - [`09-common-patterns`](./adocs/02-webflux-basics/09-common-patterns.md) — 常见模式速查
+- **阶段三：弹性与 API 版本化** — [`adocs/03-resilience/`](./adocs/03-resilience/)
+  - [`01-retryable`](./adocs/03-resilience/01-retryable.md) — @Retryable 声明式重试
+  - [`02-concurrency-limit`](./adocs/03-resilience/02-concurrency-limit.md) — @ConcurrencyLimit 并发限流
+  - [`03-retry-template`](./adocs/03-resilience/03-retry-template.md) — RetryTemplate 编程式重试
+  - [`04-api-versioning`](./adocs/03-resilience/04-api-versioning.md) — API Versioning（无 @ApiVersion）
+  - [`05-reactive-retry`](./adocs/03-resilience/05-reactive-retry.md) — 响应式重试
+  - [`06-http-message-converters`](./adocs/03-resilience/06-http-message-converters.md) — HttpMessageConverters
+  - [`07-common-patterns`](./adocs/03-resilience/07-common-patterns.md) — 速查表与常见模式
