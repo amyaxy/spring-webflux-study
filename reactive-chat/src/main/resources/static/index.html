@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reactive Chat · 操作台</title>
+<style>
+  :root {
+    --bg: #0f0f1a;
+    --surface: #1a1a2e;
+    --surface2: #222240;
+    --border: #2d2d50;
+    --accent: #6c63ff;
+    --accent2: #00d4aa;
+    --text: #e0e0f0;
+    --text2: #9090b0;
+    --danger: #ff6b6b;
+    --radius: 8px;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 20px;
+  }
+  .app { max-width: 1200px; margin: 0 auto; }
+
+  /* Header */
+  .header {
+    display: flex; align-items: center; gap: 16px;
+    margin-bottom: 28px; padding-bottom: 16px;
+    border-bottom: 1px solid var(--border);
+  }
+  .header h1 {
+    font-size: 22px; font-weight: 600;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  }
+  .header .port-badge {
+    background: var(--surface2); padding: 4px 12px; border-radius: 20px;
+    font-size: 12px; color: var(--text2); font-family: monospace;
+  }
+  .header .status {
+    margin-left: auto; display: flex; align-items: center; gap: 6px;
+    font-size: 13px;
+  }
+  .header .status-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #555; display: inline-block;
+  }
+  .header .status-dot.online { background: var(--accent2); box-shadow: 0 0 6px var(--accent2); }
+
+  /* Section */
+  .section { margin-bottom: 28px; }
+  .section-title {
+    font-size: 14px; font-weight: 600; color: var(--text2);
+    text-transform: uppercase; letter-spacing: 1px;
+    margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
+  }
+
+  /* Grid */
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 16px; }
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 16px;
+    transition: border-color 0.2s;
+  }
+  .card:hover { border-color: var(--accent); }
+  .card-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 12px;
+  }
+  .card-method {
+    font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: 4px;
+    font-family: monospace; text-transform: uppercase;
+  }
+  .method-get { background: #1a3a5c; color: #61affe; }
+  .method-post { background: #1a4a3a; color: #49cc90; }
+  .method-delete { background: #4a1a1a; color: #f93e3e; }
+  .method-ws { background: #3a2a4a; color: #b066ff; }
+  .card-path {
+    font-family: 'Cascadia Code', 'Fira Code', monospace;
+    font-size: 12px; color: var(--text2);
+  }
+  .card-body { margin-bottom: 10px; }
+  .card-body .tag {
+    display: inline-block; font-size: 11px; padding: 2px 6px;
+    border-radius: 4px; background: var(--surface2); color: var(--text2);
+    margin: 2px 4px 2px 0;
+  }
+  .card .btn-group { display: flex; gap: 8px; flex-wrap: wrap; }
+
+  /* Form Controls */
+  input, textarea, select {
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text); padding: 8px 10px; border-radius: 6px;
+    font-size: 13px; width: 100%; outline: none;
+    transition: border-color 0.2s;
+  }
+  input:focus, textarea:focus { border-color: var(--accent); }
+  input::placeholder { color: var(--text2); }
+  .row { display: flex; gap: 8px; margin-bottom: 8px; align-items: center; }
+  .row input { flex: 1; }
+  .row label { font-size: 12px; color: var(--text2); min-width: 80px; }
+  .row-inline { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+
+  /* Buttons */
+  .btn {
+    padding: 6px 14px; border: none; border-radius: 6px;
+    font-size: 13px; font-weight: 500; cursor: pointer;
+    transition: all 0.2s; white-space: nowrap;
+  }
+  .btn:active { transform: scale(0.97); }
+  .btn-primary { background: var(--accent); color: #fff; }
+  .btn-primary:hover { background: #7b74ff; }
+  .btn-danger { background: var(--danger); color: #fff; }
+  .btn-danger:hover { background: #ff7b7b; }
+  .btn-outline {
+    background: transparent; color: var(--text2);
+    border: 1px solid var(--border);
+  }
+  .btn-outline:hover { border-color: var(--accent2); color: var(--accent2); }
+  .btn-sm { padding: 4px 10px; font-size: 12px; }
+
+  /* Output */
+  .output {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 6px; padding: 10px; margin-top: 8px;
+    font-family: 'Cascadia Code', 'Fira Code', monospace;
+    font-size: 12px; max-height: 200px; overflow-y: auto;
+    white-space: pre-wrap; line-height: 1.5;
+  }
+  .output .info { color: var(--accent2); }
+  .output .error { color: var(--danger); }
+  .output .msg-in  { color: #7ec8e3; }
+  .output .msg-out { color: #b8e6b8; }
+
+  /* WebSocket Chat */
+  .ws-chat {
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .ws-chat .msg-list {
+    max-height: 400px; overflow-y: auto; display: flex;
+    flex-direction: column; gap: 6px;
+  }
+  .ws-chat .msg {
+    padding: 8px 12px; border-radius: 8px; font-size: 13px;
+    max-width: 85%;
+  }
+  .ws-chat .msg.in {
+    align-self: flex-start;
+    background: #1a2a3a; border: 1px solid #2a3a5a;
+  }
+  .ws-chat .msg.out {
+    align-self: flex-end;
+    background: #1a3a2a; border: 1px solid #2a5a3a;
+  }
+  .ws-chat .msg .sender { font-weight: 600; font-size: 11px; color: var(--text2); margin-bottom: 2px; }
+  .ws-chat .msg .time { font-size: 10px; color: var(--text2); margin-left: 6px; }
+  .ws-chat .msg .content { white-space: pre-wrap; }
+
+  /* SSE display */
+  .sse-display {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 6px; padding: 10px; margin-top: 8px;
+    min-height: 60px; max-height: 180px; overflow-y: auto;
+    font-family: monospace; font-size: 12px; line-height: 1.6;
+  }
+  .sse-display .token {
+    display: inline-block; padding: 1px 4px; margin: 1px;
+    background: #1a2a4a; border-radius: 3px;
+    animation: fadeIn 0.3s;
+  }
+  .sse-display .token.ai { background: #1a3a2a; color: var(--accent2); }
+  .sse-display .token.msg { background: #2a2a4a; color: #7ec8e3; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+  .spinner {
+    display: inline-block; width: 14px; height: 14px;
+    border: 2px solid var(--border); border-top-color: var(--accent);
+    border-radius: 50%; animation: spin 0.6s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- Header -->
+  <div class="header">
+    <h1>⚡ Reactive Chat · 操作台</h1>
+    <span class="port-badge">localhost:8084</span>
+    <div class="status">
+      <span class="status-dot" id="statusDot"></span>
+      <span id="statusText">检查中...</span>
+    </div>
+  </div>
+
+  <!-- ============ USERS ============ -->
+  <div class="section">
+    <div class="section-title"><span>🧑 Users</span> <span style="font-size:11px;color:var(--text2)">R2DBC CRUD + Virtual Threads 混合</span></div>
+    <div class="grid">
+      <!-- 创建用户 -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-method method-post">POST</span>
+          <span class="card-path">/api/users</span>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <input id="createUser" placeholder="username" value="testuser">
+          </div>
+          <div class="row">
+            <input id="createDisplay" placeholder="displayName (可选)" value="测试用户">
+          </div>
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-primary btn-sm" onclick="createUser()">➕ 创建用户</button>
+        </div>
+        <div id="createUserOut" class="output"></div>
+      </div>
+
+      <!-- 获取用户列表 -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-method method-get">GET</span>
+          <span class="card-path">/api/users</span>
+        </div>
+        <div class="card-body">
+          <span class="tag">Flux<User></span>
+          <span class="tag">响应式列表</span>
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-outline btn-sm" onclick="listUsers()">📋 获取所有用户</button>
+          <button class="btn btn-outline btn-sm" onclick="listUsersSSE()" title="以 SSE 流方式逐个接收用户">📡 SSE 流式</button>
+        </div>
+        <div id="listUsersOut" class="output"></div>
+      </div>
+
+      <!-- 查询/删除用户 -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <span class="card-method method-get">GET</span>
+            <span class="card-path">/api/users/{id}</span>
+            <span style="margin:0 4px;color:var(--text2)">|</span>
+            <span class="card-method method-delete">DEL</span>
+            <span class="card-path">/api/users/{id}</span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <input id="userId" type="number" placeholder="User ID" value="1">
+          </div>
+          <span class="tag">Mono<User></span>
+          <span class="tag">响应式查询</span>
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-outline btn-sm" onclick="getUser()">🔍 查询</button>
+          <button class="btn btn-primary btn-sm" onclick="getUserHybrid()" title="Virtual Threads 阻塞模式，体会 Spring 7 VT 混合架构">🧵 Hybrid (VT)</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteUser()">🗑️ 删除</button>
+        </div>
+        <div id="userOpOut" class="output"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ CHAT ============ -->
+  <div class="section">
+    <div class="section-title"><span>💬 Chat</span> <span style="font-size:11px;color:var(--text2)">SSE 房间消息流 + AI 流式对话</span></div>
+    <div class="grid">
+      <!-- 发送消息 -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-method method-post">POST</span>
+          <span class="card-path">/api/chat/rooms/{room}/messages</span>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <label>房间</label>
+            <input id="msgRoom" value="general">
+          </div>
+          <div class="row">
+            <label>发送者</label>
+            <input id="msgSender" value="公子">
+          </div>
+          <div class="row">
+            <label>内容</label>
+            <input id="msgContent" value="Hello WebFlux!">
+          </div>
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-primary btn-sm" onclick="sendMessage()">📤 发送消息</button>
+        </div>
+        <div id="sendMsgOut" class="output"></div>
+      </div>
+
+      <!-- SSE 房间流 -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-method method-get">GET</span>
+          <span class="card-path">/api/chat/rooms/{room}/stream</span>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <label>房间</label>
+            <input id="sseRoom" value="general">
+          </div>
+          <span class="tag">Flux<ChatMessage></span>
+          <span class="tag">text/event-stream</span>
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-outline btn-sm" onclick="startSSE()" id="sseStartBtn">▶️ 监听 SSE</button>
+          <button class="btn btn-danger btn-sm" onclick="stopSSE()" id="sseStopBtn" disabled>⏹️ 停止</button>
+        </div>
+        <div id="sseOut" class="sse-display"><span style="color:var(--text2)">点击「监听 SSE」开始接收房间消息流</span></div>
+      </div>
+
+      <!-- AI 流式对话 -->
+      <div class="card">
+        <div class="card-header">
+          <span class="card-method method-post">POST</span>
+          <span class="card-path">/api/chat/ai/stream</span>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <label>对话 ID</label>
+            <input id="aiConvId" value="conversation-1">
+          </div>
+          <div class="row">
+            <label>消息</label>
+            <input id="aiMessage" value="什么是响应式编程？">
+          </div>
+          <span class="tag">Flux<String></span>
+          <span class="tag">@Retryable</span>
+          <span class="tag">delayElements 300ms</span>
+        </div>
+        <div class="btn-group">
+          <button class="btn btn-primary btn-sm" onclick="startAI()" id="aiStartBtn">🤖 开始 AI 对话</button>
+          <button class="btn btn-danger btn-sm" onclick="stopAI()" id="aiStopBtn" disabled>⏹️ 停止</button>
+        </div>
+        <div id="aiOut" class="sse-display"><span style="color:var(--text2)">点击「开始 AI 对话」体验流式输出</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ WEBSOCKET ============ -->
+  <div class="section">
+    <div class="section-title">
+      <span>🔌 WebSocket</span>
+      <span style="font-size:11px;color:var(--text2)">ws://localhost:8084/ws/chat/{room} · 双向实时聊天</span>
+    </div>
+    <div class="grid">
+      <div class="card" style="grid-column: 1 / -1;">
+        <div class="card-header">
+          <span class="card-method method-ws">WS</span>
+          <span class="card-path">/ws/chat/{room}</span>
+          <span id="wsIndicator" style="font-size:12px;color:var(--text2)">🔴 未连接</span>
+        </div>
+        <div class="card-body ws-chat">
+          <div class="row-inline">
+            <label style="min-width:auto;">房间</label>
+            <input id="wsRoom" value="general" style="width:160px;">
+            <label style="min-width:auto;">发送者</label>
+            <input id="wsSender" value="公子" style="width:160px;">
+            <button class="btn btn-primary btn-sm" onclick="connectWS()" id="wsConnectBtn">🔗 连接</button>
+            <button class="btn btn-danger btn-sm" onclick="disconnectWS()" id="wsDisconnectBtn" disabled>🔌 断开</button>
+          </div>
+          <div class="msg-list" id="wsMsgList">
+            <!-- WebSocket messages render here -->
+            <div style="color:var(--text2);font-size:13px;padding:8px;">连接 WebSocket 后即可收发实时消息</div>
+          </div>
+          <div class="row-inline">
+            <input id="wsContent" placeholder="输入消息..." style="flex:1;">
+            <button class="btn btn-primary btn-sm" onclick="sendWS()" id="wsSendBtn" disabled>📤 发送</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ TAG LEGEND ============ -->
+  <div style="margin-top:32px;padding-top:16px;border-top:1px solid var(--border);font-size:12px;color:var(--text2);">
+    <span style="margin-right:16px;">📌 知识要点验证：</span>
+    <span class="tag">R2DBC CRUD</span> — 响应式数据库操作
+    <span class="tag">Flux/Mono</span> — 响应式流
+    <span class="tag">SSE</span> — 服务端推送
+    <span class="tag">WebSocket</span> — 双向实时通信
+    <span class="tag">@Retryable</span> — 声明式重试
+    <span class="tag">Virtual Threads</span> — 虚拟线程混合架构
+  </div>
+</div>
+
+<script>
+const BASE = 'http://localhost:8084';
+let sseSource = null;
+let aiController = null;
+let wsSocket = null;
+
+// ==================== 健康检查 ====================
+async function checkHealth() {
+  try {
+    const r = await fetch(BASE + '/actuator/health', { signal: AbortSignal.timeout(3000) });
+    if (r.ok) {
+      document.getElementById('statusDot').className = 'status-dot online';
+      document.getElementById('statusText').textContent = '🟢 服务在线';
+    }
+  } catch {
+    document.getElementById('statusDot').className = 'status-dot';
+    document.getElementById('statusText').textContent = '🔴 服务未连接';
+  }
+}
+checkHealth();
+
+// ==================== USERS ====================
+async function createUser() {
+  const u = document.getElementById('createUser').value.trim();
+  const d = document.getElementById('createDisplay').value.trim();
+  const out = document.getElementById('createUserOut');
+  out.innerHTML = '<span class="spinner"></span> 创建中...';
+  try {
+    const r = await fetch(BASE + '/api/users?username=' + encodeURIComponent(u) + '&displayName=' + encodeURIComponent(d), { method: 'POST' });
+    if (!r.ok) { out.innerHTML = '<span class="error">' + r.status + ' ' + r.statusText + '</span>'; return; }
+    const user = await r.json();
+    out.innerHTML = '<span class="info">✅ 创建成功</span>\n' + JSON.stringify(user, null, 2);
+    document.getElementById('userId').value = user.id;
+  } catch(e) { out.innerHTML = '<span class="error">❌ ' + e.message + '</span>'; }
+}
+
+async function listUsers() {
+  const out = document.getElementById('listUsersOut');
+  out.innerHTML = '<span class="spinner"></span> 加载中...';
+  try {
+    const r = await fetch(BASE + '/api/users');
+    const users = await r.json();
+    if (users.length === 0) { out.innerHTML = '<span class="info">暂无用户</span>'; return; }
+    out.innerHTML = '<span class="info">✅ 共 ' + users.length + ' 个用户</span>\n' + JSON.stringify(users, null, 2);
+  } catch(e) { out.innerHTML = '<span class="error">❌ ' + e.message + '</span>'; }
+}
+
+async function listUsersSSE() {
+  const out = document.getElementById('listUsersOut');
+  out.innerHTML = '<span class="spinner"></span> 以 SSE 流式逐个接收...';
+  const users = [];
+  try {
+    const r = await fetch(BASE + '/api/users', { headers: { 'Accept': 'text/event-stream' } });
+    const reader = r.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = '';
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      const lines = buf.split('\n');
+      buf = lines.pop() || '';
+      for (const line of lines) {
+        if (line.startsWith('data:')) {
+          try { users.push(JSON.parse(line.slice(5).trim())); } catch {}
+        }
+      }
+    }
+    if (users.length === 0) { out.innerHTML = '<span class="info">暂无用户</span>'; return; }
+    out.innerHTML = '<span class="info">✅ SSE 流式接收 ' + users.length + ' 个用户</span>\n' + JSON.stringify(users, null, 2);
+  } catch(e) { out.innerHTML = '<span class="error">❌ ' + e.message + '</span>'; }
+}
+
+async function getUser() {
+  const id = document.getElementById('userId').value;
+  const out = document.getElementById('userOpOut');
+  out.innerHTML = '<span class="spinner"></span> 查询中...';
+  try {
+    const r = await fetch(BASE + '/api/users/' + id);
+    if (!r.ok) { out.innerHTML = '<span class="error">' + r.status + ' 用户不存在</span>'; return; }
+    const user = await r.json();
+    out.innerHTML = '<span class="info">✅ 查询成功 (Mono)</span>\n' + JSON.stringify(user, null, 2);
+  } catch(e) { out.innerHTML = '<span class="error">❌ ' + e.message + '</span>'; }
+}
+
+async function getUserHybrid() {
+  const id = document.getElementById('userId').value;
+  const out = document.getElementById('userOpOut');
+  out.innerHTML = '<span class="spinner"></span> Virtual Threads 阻塞查询中...';
+  try {
+    const r = await fetch(BASE + '/api/users/hybrid/' + id);
+    if (!r.ok) { out.innerHTML = '<span class="error">' + r.status + ' 用户不存在</span>'; return; }
+    const user = await r.json();
+    out.innerHTML = '<span class="info">✅ 查询成功 (VT Hybrid 🧵)</span>\n' + JSON.stringify(user, null, 2);
+  } catch(e) { out.innerHTML = '<span class="error">❌ ' + e.message + '</span>'; }
+}
+
+async function deleteUser() {
+  const id = document.getElementById('userId').value;
+  const out = document.getElementById('userOpOut');
+  out.innerHTML = '<span class="spinner"></span> 删除中...';
+  try {
+    const r = await fetch(BASE + '/api/users/' + id, { method: 'DELETE' });
+    if (r.status === 204) { out.innerHTML = '<span class="info">✅ 删除成功 (204 No Content)</span>'; }
+    else if (!r.ok) { out.innerHTML = '<span class="error">' + r.status + '</span>'; }
+    else { out.innerHTML = '<span class="info">✅ 已删除</span>'; }
+  } catch(e) { out.innerHTML = '<span class="error">❌ ' + e.message + '</span>'; }
+}
+
+// ==================== CHAT ====================
+async function sendMessage() {
+  const room = document.getElementById('msgRoom').value.trim() || 'general';
+  const sender = document.getElementById('msgSender').value.trim() || 'anonymous';
+  const content = document.getElementById('msgContent').value.trim() || 'hello';
+  const out = document.getElementById('sendMsgOut');
+  out.innerHTML = '<span class="spinner"></span> 发送中...';
+  try {
+    const url = BASE + '/api/chat/rooms/' + encodeURIComponent(room) + '/messages'
+      + '?sender=' + encodeURIComponent(sender) + '&content=' + encodeURIComponent(content);
+    const r = await fetch(url, { method: 'POST' });
+    const msg = await r.json();
+    out.innerHTML = '<span class="info">✅ 消息已发送</span>\n' + JSON.stringify(msg, null, 2);
+  } catch(e) { out.innerHTML = '<span class="error">❌ ' + e.message + '</span>'; }
+}
+
+let sseRunning = false;
+function startSSE() {
+  if (sseRunning) return;
+  const room = document.getElementById('sseRoom').value.trim() || 'general';
+  const out = document.getElementById('sseOut');
+  out.innerHTML = '<span class="spinner"></span> 连接 SSE 流...';
+  sseRunning = true;
+  document.getElementById('sseStartBtn').disabled = true;
+  document.getElementById('sseStopBtn').disabled = false;
+
+  sseSource = new EventSource(BASE + '/api/chat/rooms/' + encodeURIComponent(room) + '/stream');
+  sseSource.onopen = () => { out.innerHTML = '<span class="info">✅ SSE 已连接，等待消息...</span>\n'; };
+  sseSource.onmessage = (e) => {
+    try {
+      const msg = JSON.parse(e.data);
+      const ts = msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString() : '';
+      out.innerHTML += '<div><span class="token msg">[' + ts + '] ' + msg.sender + ':</span> ' + msg.content + '</div>';
+      out.scrollTop = out.scrollHeight;
+    } catch {
+      out.innerHTML += '<div><span class="token">' + e.data + '</span></div>';
+    }
+  };
+  sseSource.onerror = () => {
+    out.innerHTML += '<div><span class="error">⚠️ SSE 连接断开（服务端关闭流或网络异常）</span></div>';
+    stopSSE();
+  };
+}
+
+function stopSSE() {
+  if (sseSource) { sseSource.close(); sseSource = null; }
+  sseRunning = false;
+  document.getElementById('sseStartBtn').disabled = false;
+  document.getElementById('sseStopBtn').disabled = true;
+}
+
+// AI Stream
+let aiRunning = false;
+async function startAI() {
+  if (aiRunning) return;
+  const convId = document.getElementById('aiConvId').value.trim() || 'conv-1';
+  const msg = document.getElementById('aiMessage').value.trim() || 'hello';
+  const out = document.getElementById('aiOut');
+  out.innerHTML = '';
+  aiRunning = true;
+  document.getElementById('aiStartBtn').disabled = true;
+  document.getElementById('aiStopBtn').disabled = false;
+
+  try {
+    const url = BASE + '/api/chat/ai/stream?conversationId=' + encodeURIComponent(convId) + '&message=' + encodeURIComponent(msg);
+    const r = await fetch(url, { method: 'POST' });
+    const reader = r.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = '';
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, { stream: true });
+      const lines = buf.split('\n');
+      buf = lines.pop() || '';
+      for (const line of lines) {
+        if (line.startsWith('data:')) {
+          const token = line.slice(5).trim();
+          if (token) {
+            const isAI = token.includes('AGENT') || token.includes('你好') || token.includes('建议');
+            out.innerHTML += '<span class="token ' + (isAI ? 'ai' : '') + '">' + escapeHtml(token) + '</span>';
+            out.scrollTop = out.scrollHeight;
+          }
+        }
+      }
+    }
+    out.innerHTML += '<div style="margin-top:8px"><span class="info">✅ AI 对话流完成</span></div>';
+  } catch(e) {
+    if (e.name !== 'AbortError') out.innerHTML += '<div><span class="error">❌ ' + e.message + '</span></div>';
+  }
+  stopAI();
+}
+
+function stopAI() {
+  aiRunning = false;
+  document.getElementById('aiStartBtn').disabled = false;
+  document.getElementById('aiStopBtn').disabled = true;
+}
+
+// ==================== WEBSOCKET ====================
+function connectWS() {
+  if (wsSocket && wsSocket.readyState === WebSocket.OPEN) return;
+  const room = document.getElementById('wsRoom').value.trim() || 'general';
+  const list = document.getElementById('wsMsgList');
+  list.innerHTML = '<div style="color:var(--text2);font-size:13px;padding:8px;">🔄 连接中...</div>';
+
+  try {
+    wsSocket = new WebSocket('ws://localhost:8084/ws/chat/' + encodeURIComponent(room));
+
+    wsSocket.onopen = () => {
+      document.getElementById('wsIndicator').textContent = '🟢 已连接 (' + room + ')';
+      document.getElementById('wsConnectBtn').disabled = true;
+      document.getElementById('wsDisconnectBtn').disabled = false;
+      document.getElementById('wsSendBtn').disabled = false;
+      list.innerHTML = '<div style="color:var(--accent2);font-size:13px;padding:8px;">✅ WebSocket 已连接，房间：' + room + '</div>';
+    };
+
+    wsSocket.onmessage = (e) => {
+      try {
+        const msg = JSON.parse(e.data);
+        const ts = msg.createdAt ? new Date(msg.createdAt).toLocaleTimeString() : '';
+        if (list.querySelector('.placeholder')) list.innerHTML = '';
+        list.innerHTML += '<div class="msg in"><div class="sender">' + escapeHtml(msg.sender) + '<span class="time">' + ts + '</span></div><div class="content">' + escapeHtml(msg.content) + '</div></div>';
+        list.scrollTop = list.scrollHeight;
+      } catch {
+        list.innerHTML += '<div class="msg in"><div class="sender">系统<span class="time"></span></div><div class="content">' + escapeHtml(e.data) + '</div></div>';
+      }
+    };
+
+    wsSocket.onclose = () => {
+      document.getElementById('wsIndicator').textContent = '🔴 已断开';
+      document.getElementById('wsConnectBtn').disabled = false;
+      document.getElementById('wsDisconnectBtn').disabled = true;
+      document.getElementById('wsSendBtn').disabled = true;
+      list.innerHTML += '<div style="color:var(--text2);font-size:12px;padding:4px;">🔌 连接已关闭</div>';
+      wsSocket = null;
+    };
+
+    wsSocket.onerror = () => {
+      list.innerHTML += '<div style="color:var(--danger);font-size:12px;padding:4px;">❌ WebSocket 错误</div>';
+    };
+  } catch(e) {
+    list.innerHTML = '<div style="color:var(--danger);padding:8px;">❌ 连接失败: ' + e.message + '</div>';
+  }
+}
+
+function disconnectWS() {
+  if (wsSocket) {
+    wsSocket.close();
+    wsSocket = null;
+  }
+}
+
+function sendWS() {
+  if (!wsSocket || wsSocket.readyState !== WebSocket.OPEN) {
+    document.getElementById('wsContent').placeholder = '请先连接 WebSocket';
+    return;
+  }
+  const sender = document.getElementById('wsSender').value.trim() || 'anonymous';
+  const content = document.getElementById('wsContent').value.trim();
+  if (!content) return;
+
+  const list = document.getElementById('wsMsgList');
+  if (list.querySelector('.placeholder')) list.innerHTML = '';
+  list.innerHTML += '<div class="msg out"><div class="sender">' + escapeHtml(sender) + '</div><div class="content">' + escapeHtml(content) + '</div></div>';
+  list.scrollTop = list.scrollHeight;
+
+  wsSocket.send(JSON.stringify({ sender, content }));
+  document.getElementById('wsContent').value = '';
+}
+
+document.getElementById('wsContent').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') { e.preventDefault(); sendWS(); }
+});
+
+// ==================== UTILITIES ====================
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+// 定期检查服务状态
+setInterval(checkHealth, 10000);
+</script>
+</body>
+</html>
